@@ -58,6 +58,36 @@ class EmailDraftControllerTest {
     }
 
     @Test
+    void testUpdateDraft_SanitizesHtmlTags() {
+        EmailDraft draft = draftService.create("alice@example.com", "Subject", "Old Body");
+
+        EmailDraftController.UpdateDraftRequest updateReq =
+                new EmailDraftController.UpdateDraftRequest("bob@example.com", "New Subject", "Hello Bob,<br><br>Here is the update.<br/>Thanks,<br />Alice");
+
+        EmailDraft updated = controller.updateDraft(draft.id(), updateReq);
+
+        assertThat(updated.body()).doesNotContain("<br>");
+        assertThat(updated.body()).doesNotContain("<br/>");
+        assertThat(updated.body()).doesNotContain("<br />");
+        assertThat(updated.body()).contains("Hello Bob,\n\nHere is the update.\nThanks,\nAlice");
+    }
+
+    @Test
+    void testSanitizePlainText_ConvertsHtmlTagsAndEntities() {
+        String input = "Hello Team,<br><br><p>First paragraph.</p><p>Second paragraph with &amp; symbols and &nbsp;spaces.</p><br/>Best,<br />Alex";
+        String cleaned = GmailService.sanitizePlainText(input);
+
+        assertThat(cleaned).doesNotContain("<br>");
+        assertThat(cleaned).doesNotContain("<p>");
+        assertThat(cleaned).doesNotContain("</p>");
+        assertThat(cleaned).doesNotContain("&amp;");
+        assertThat(cleaned).doesNotContain("&nbsp;");
+        assertThat(cleaned).contains("First paragraph.");
+        assertThat(cleaned).contains("Second paragraph with & symbols and  spaces.");
+        assertThat(cleaned).contains("Best,\r\nAlex");
+    }
+
+    @Test
     void testCancelDraft() {
         EmailDraft draft = draftService.create("alice@example.com", "Subject", "Body");
 

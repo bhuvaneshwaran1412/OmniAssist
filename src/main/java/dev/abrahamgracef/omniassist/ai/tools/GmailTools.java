@@ -38,6 +38,9 @@ public class GmailTools {
         Call this tool only when the CURRENT user message explicitly
         asks to write, compose, draft, or send an email.
 
+        The email body MUST be plain text with standard newlines (\\n).
+        Do NOT use HTML tags such as <br> or <p> anywhere in the body.
+
         Do not call this tool for general questions, capability questions,
         email-reading requests, or based only on previous conversation context.
 
@@ -48,7 +51,16 @@ public class GmailTools {
             String subject,
             String body) {
 
-        String cleanBody = body
+        String cleanBody = (body != null ? body : "")
+                .replaceAll("(?i)<br\\s*/?>", "\n")
+                .replaceAll("(?i)</p>", "\n\n")
+                .replaceAll("(?i)<p>", "")
+                .replace("&nbsp;", " ")
+                .replace("&amp;", "&")
+                .replace("&lt;", "<")
+                .replace("&gt;", ">")
+                .replace("&quot;", "\"")
+                .replace("&#39;", "'")
                 .replace("\\r\\n", "\n")
                 .replace("\\n", "\n");
 

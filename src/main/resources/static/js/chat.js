@@ -704,8 +704,9 @@ function scrollToBottom() {
 }
 
 function escapeHtml(text) {
+    if (!text) return "";
     const div = document.createElement("div");
-    div.innerText = text || "";
+    div.textContent = text;
     return div.innerHTML;
 }
 
@@ -742,6 +743,11 @@ function addEmailDraftCard(draft) {
     card.className = "email-draft-card";
     card.id = `draft-${draft.id}`;
 
+    const rawBody = (draft.body || "")
+        .replace(/<br\s*[\/]?>/gi, "\n")
+        .replace(/<\/p>/gi, "\n\n")
+        .replace(/<p>/gi, "");
+
     card.innerHTML = `
         <div class="draft-header">
             <span class="draft-badge">Email Draft Pending Review</span>
@@ -757,7 +763,7 @@ function addEmailDraftCard(draft) {
         </div>
         <div class="draft-field">
             <label>Body</label>
-            <textarea class="text-input draft-body" rows="4">${escapeHtml(draft.body || '')}</textarea>
+            <textarea class="text-input draft-body" rows="5"></textarea>
         </div>
         <div class="draft-actions">
             <button class="primary-btn btn-send-draft">Send Email</button>
@@ -766,6 +772,12 @@ function addEmailDraftCard(draft) {
         <div class="draft-status" style="margin-top: 10px; font-size: 12px;"></div>
     `;
 
+    // Populate textarea via .value property to preserve pure plain text and newlines
+    const bodyArea = card.querySelector(".draft-body");
+    if (bodyArea) {
+        bodyArea.value = rawBody;
+    }
+
     const statusDiv = card.querySelector(".draft-status");
 
     card.querySelector(".btn-send-draft").addEventListener("click", async () => {
@@ -773,7 +785,10 @@ function addEmailDraftCard(draft) {
         try {
             const to = card.querySelector(".draft-to")?.value;
             const subject = card.querySelector(".draft-subject")?.value;
-            const body = card.querySelector(".draft-body")?.value;
+            let body = (card.querySelector(".draft-body")?.value || "")
+                .replace(/<br\s*[\/]?>/gi, "\n")
+                .replace(/<\/p>/gi, "\n\n")
+                .replace(/<p>/gi, "");
 
             // Sync user edits to the draft prior to sending
             await fetch(`/api/email/draft/${draft.id}`, {
@@ -814,6 +829,10 @@ function addMeetingDraftCard(draft) {
     card.id = `meeting-draft-${draft.id}`;
 
     const attendeesStr = (draft.attendees || []).join(", ");
+    const rawDesc = (draft.description || "")
+        .replace(/<br\s*[\/]?>/gi, "\n")
+        .replace(/<\/p>/gi, "\n\n")
+        .replace(/<p>/gi, "");
 
     card.innerHTML = `
         <div class="draft-header">
@@ -840,7 +859,7 @@ function addMeetingDraftCard(draft) {
         </div>
         <div class="draft-field">
             <label>Notes / Agenda</label>
-            <textarea class="text-input draft-desc" rows="3">${escapeHtml(draft.description || '')}</textarea>
+            <textarea class="text-input draft-desc" rows="3"></textarea>
         </div>
         <div class="draft-actions">
             <button class="primary-btn btn-schedule-meeting">Confirm & Schedule</button>
@@ -848,6 +867,11 @@ function addMeetingDraftCard(draft) {
         </div>
         <div class="draft-status" style="margin-top: 10px; font-size: 12px;"></div>
     `;
+
+    const descArea = card.querySelector(".draft-desc");
+    if (descArea) {
+        descArea.value = rawDesc;
+    }
 
     const statusDiv = card.querySelector(".draft-status");
 

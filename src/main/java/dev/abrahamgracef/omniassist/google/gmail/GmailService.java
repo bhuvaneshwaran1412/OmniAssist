@@ -206,12 +206,15 @@ public class GmailService {
             String to,
             String subject,
             String body) {
+
+        String cleanBody = sanitizePlainText(body);
+
         String mimeMessage =
                 "To: " + to + "\r\n" +
                         "Subject: " + subject + "\r\n" +
                         "Content-Type: text/plain; charset=UTF-8\r\n" +
                         "\r\n" +
-                        body;
+                        cleanBody;
 
         String encodedMessage = Base64.getUrlEncoder()
                 .withoutPadding()
@@ -240,6 +243,25 @@ public class GmailService {
 
         return response.get("id").toString();
     }
+
+    public static String sanitizePlainText(String text) {
+        if (text == null) {
+            return "";
+        }
+        return text
+                .replaceAll("(?i)<br\\s*/?>", "\r\n")
+                .replaceAll("(?i)</p>", "\r\n\r\n")
+                .replaceAll("(?i)<p>", "")
+                .replace("&nbsp;", " ")
+                .replace("&amp;", "&")
+                .replace("&lt;", "<")
+                .replace("&gt;", ">")
+                .replace("&quot;", "\"")
+                .replace("&#39;", "'")
+                .replace("\\r\\n", "\r\n")
+                .replace("\\n", "\r\n");
+    }
+
     private static Map<String, Object> asObjectMap(Object value) {
         if (!(value instanceof Map<?, ?> map)) {
             return Map.of();

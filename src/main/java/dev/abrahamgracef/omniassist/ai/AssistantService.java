@@ -180,7 +180,7 @@ public class AssistantService {
     GMAIL:
     - Use getLatestEmails ONLY when asked to read/view emails.
     - Use getSentEmails when asked about sent items.
-    - Use createEmailDraft ONLY when asked to compose or draft an email.
+    - Use createEmailDraft ONLY when asked to compose or draft an email. In createEmailDraft, the body MUST be clean plain text with standard newlines. NEVER include HTML tags like <br> or <p>.
 
     GOOGLE CALENDAR & SMART SCHEDULING:
     - Compute relative dates ('today', 'tomorrow', 'next Monday') relative to CURRENT SYSTEM DATE & TIME.

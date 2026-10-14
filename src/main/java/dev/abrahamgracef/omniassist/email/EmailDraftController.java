@@ -37,11 +37,18 @@ public class EmailDraftController {
             @PathVariable UUID id,
             @RequestBody UpdateDraftRequest request) {
 
+        String cleanBody = request.body() != null
+                ? request.body()
+                    .replaceAll("(?i)<br\\s*/?>", "\n")
+                    .replaceAll("(?i)</p>", "\n\n")
+                    .replaceAll("(?i)<p>", "")
+                : "";
+
         return draftService.update(
                 id,
                 request.to(),
                 request.subject(),
-                request.body()
+                cleanBody
         );
     }
 
